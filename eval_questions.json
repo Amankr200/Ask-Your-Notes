@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "question": "What is gradient descent and how does it minimize the loss function?",
+    "expected_source": "sample_lecture_notes.pdf",
+    "expected_page": 1,
+    "topic": "Optimization & Supervised Learning"
+  },
+  {
+    "id": 2,
+    "question": "What mathematical model do supervised learning algorithms build?",
+    "expected_source": "sample_lecture_notes.pdf",
+    "expected_page": 1,
+    "topic": "Supervised Learning Fundamentals"
+  },
+  {
+    "id": 3,
+    "question": "What causes overfitting in a machine learning model?",
+    "expected_source": "sample_lecture_notes.pdf",
+    "expected_page": 2,
+    "topic": "Overfitting & Generalization"
+  },
+  {
+    "id": 4,
+    "question": "What are common regularization techniques like Dropout and L2 weight decay used for?",
+    "expected_source": "sample_lecture_notes.pdf",
+    "expected_page": 2,
+    "topic": "Regularization Techniques"
+  },
+  {
+    "id": 5,
+    "question": "How does backpropagation relate to Dropout layers during training?",
+    "expected_source": "sample_lecture_notes.pdf",
+    "expected_page": 2,
+    "topic": "Neural Network Training"
+  }
+]

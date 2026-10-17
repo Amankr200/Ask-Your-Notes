@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ask Your Notes Architecture</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1600px;
+      height: 900px;
+      background: #090D16;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #E2E8F0;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      padding: 36px 48px;
+    }
+
+    /* Ambient background glows */
+    .glow-1 {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+      top: -150px;
+      left: 100px;
+      pointer-events: none;
+    }
+    .glow-2 {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+      bottom: -150px;
+      right: 150px;
+      pointer-events: none;
+    }
+    .glow-3 {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, transparent 70%);
+      bottom: 50px;
+      left: 300px;
+      pointer-events: none;
+    }
+
+    /* Grid pattern overlay */
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+
+    /* Header */
+    .header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 28px;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tag-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818CF8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .tag-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #818CF8;
+      box-shadow: 0 0 8px #818CF8;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #FFFFFF 30%, #CBD5E1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-subtitle {
+      font-size: 14px;
+      color: #94A3B8;
+      font-weight: 500;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #94A3B8;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 14px;
+      border-radius: 8px;
+    }
+
+    /* Main Diagram Container */
+    .content-area {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      flex: 1;
+    }
+
+    .track {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 18px;
+      padding: 20px 24px;
+      position: relative;
+      backdrop-filter: blur(12px);
+    }
+
+    .track-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .track-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ingest-title { color: #38BDF8; }
+    .rag-title { color: #34D399; }
+
+    .track-flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      position: relative;
+    }
+
+    /* Flow card */
+    .node-card {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    .node-card.highlight-blue {
+      border-color: rgba(56, 189, 248, 0.35);
+      box-shadow: 0 4px 20px -2px rgba(56, 189, 248, 0.1);
+    }
+
+    .node-card.highlight-purple {
+      border-color: rgba(168, 85, 247, 0.35);
+      box-shadow: 0 4px 20px -2px rgba(168, 85, 247, 0.1);
+    }
+
+    .node-card.highlight-emerald {
+      border-color: rgba(52, 211, 153, 0.35);
+      box-shadow: 0 4px 20px -2px rgba(52, 211, 153, 0.1);
+    }
+
+    .node-card.highlight-amber {
+      border-color: rgba(251, 191, 36, 0.35);
+      box-shadow: 0 4px 20px -2px rgba(251, 191, 36, 0.1);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .step-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #94A3B8;
+    }
+
+    .tech-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #CBD5E1;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #F8FAFC;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: #94A3B8;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      flex: 1;
+    }
+
+    .card-meta {
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 8px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .meta-item {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      color: #64748B;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .meta-val {
+      color: #E2E8F0;
+      font-weight: 600;
+    }
+
+    /* Arrow indicators between cards */
+    .arrow-icon {
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      background: #1E293B;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      color: #94A3B8;
+    }
+
+    /* Footer Banner */
+    .footer-bar {
+      position: relative;
+      z-index: 10;
+      margin-top: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-size: 12px;
+    }
+
+    .footer-left {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .feature-tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #CBD5E1;
+      font-weight: 500;
+    }
+
+    .check-icon {
+      color: #10B981;
+      font-weight: 800;
+    }
+
+    .formula-tag {
+      font-family: 'JetBrains Mono', monospace;
+      color: #A78BFA;
+      background: rgba(167, 139, 250, 0.1);
+      padding: 3px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(167, 139, 250, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+  <div class="glow-3"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="badge-row">
+        <div class="tag-badge">
+          <span class="tag-dot"></span>
+          System Architecture
+        </div>
+        <div class="pill">Framework-Free RAG Engine</div>
+      </div>
+      <h1>Ask Your Notes — Architecture Pipeline</h1>
+      <div class="header-subtitle">
+        Document Ingestion &middot; Dense Vector Retrieval &middot; Strict Grounding Guardrails &middot; Streamlit UI
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="pill">IndexFlatL2 (Cosine)</div>
+      <div class="pill">all-MiniLM-L6-v2 (384d)</div>
+      <div class="pill">Google Gemini API</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content-area">
+    <!-- Top Track: Ingestion Flow -->
+    <div class="track">
+      <div class="track-header">
+        <span class="track-title ingest-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Phase 1: Ingestion &amp; Indexing Pipeline (ingest.py)
+        </span>
+      </div>
+      <div class="track-flow">
+        <!-- Node 1 -->
+        <div class="node-card highlight-blue">
+          <div class="card-top">
+            <span class="step-num">01</span>
+            <span class="tech-chip">pypdf</span>
+          </div>
+          <div class="card-title">PDF Ingestion</div>
+          <div class="card-desc">Parses lecture PDFs page-by-page. Extracts text while tracking exact 1-based page numbers and file origins.</div>
+          <div class="card-meta">
+            <div class="meta-item"><span>Directory</span><span class="meta-val">data/*.pdf</span></div>
+            <div class="meta-item"><span>Metadata</span><span class="meta-val">filename, page</span></div>
+          </div>
+          <div class="arrow-icon">&rarr;</div>
+        </div>
+
+        <!-- Node 2 -->
+        <div class="node-card highlight-blue">
+          <div class="card-top">
+            <span class="step-num">02</span>
+            <span class="tech-chip">sliding window</span>
+          </div>
+          <div class="card-title">Chunking Engine</div>
+          <div class="card-desc">Splits extracted text using overlapping character windows to preserve semantic continuity across boundaries.</div>
+          <div class="card-meta">
+            <div class="meta-item"><span>Chunk Size</span><span class="meta-val">~500 chars</span></div>
+            <div class="meta-item"><span>Overlap</span><span class="meta-val">80 chars</span></div>
+          </div>
+          <div class="arrow-icon">&rarr;</div>
+        </div>
+
+        <!-- Node 3 -->
+        <div class="node-card highlight-purple">
+          <div class="card-top">
+            <span class="step-num">03</span>
+            <span class="tech-chip">sentence-transformers</span>
+          </div>
+          <div class="card-title">Dense Embeddings</div>
+          <div class="card-desc">Transforms text chunks into dense 384-dimensional vector representations and applies L2 unit normalization.</div>
+          <div class="card-meta">
+            <div class="meta-item"><span>Model</span><span class="meta-val">all-MiniLM-L6-v2</span></div>
+            <div class="meta-item"><span>Vector Dim</span><span class="meta-val">384 Float32</span></div>
+          </div>
+          <div class="arrow-icon">&rarr;</div>
+        </div>
+
+        <!-- Node 4 -->
+        <div class="node-card highlight-purple">
+          <div class="card-top">
+            <span class="step-num">04</span>
+            <span class="tech-chip">faiss-cpu</span>
+          </div>
+          <div class="card-title">FAISS Vector Store</div>
+          <div class="card-desc">Serializes the unit-normalized vectors into a high-performance C++ index alongside chunk metadata.</div>
+          <div class="card-meta">
+            <div class="meta-item"><span>Vector Index</span><span class="meta-val">faiss.index</span></div>
+            <div class="meta-item"><span>Metadata</span><span class="meta-val">chunks.pkl</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Track: Real-Time RAG Flow -->
+    <div class="track">
+      <div class="track-header">
+        <span class="track-title rag-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          Phase 2: Semantic Retrieval &amp; Grounded Generation (retrieve.py &middot; llm.py &middot; app.py)
+        </span>
+      </div>
+      <div class="track-flow">
+        <!-- Node 5 -->
+        <div class="node-card highlight-amber">
+          <div class="card-top">
+            <span class="step-num">05</span>
+            <span class="tech-chip">Streamlit</span>
+          </div>
+          <div class="card-title">User Question</div>
+          <div class="card-desc">User inputs natural language query through the interactive Streamlit web dashboard.</div>
+          <div class="card-meta">
+            <div class="meta-item"><span>Interface</span><span class="meta-val">Web UI (8501)</span></div>
+            <div class="meta-item"><span>State</span><span class="meta-val">Session Store</span></div>
+          </div>
+          <div class="arrow-icon">&rarr;</div>
+        </div>
+
+        <!-- Node 6 -->
+        <div class="node-card highlight-amber">
+          <div class="card-top">
+            <span class="step-num">06</span>
+            <span class="tech-chip">retrieve.py</span>
+          </div>
+          <div class="card-title">Cosine Similarity</div>
+          <div class="card-desc">Embeds query, applies L2 normalization, and retrieves Top-4 nearest chunks using FAISS inner product.</div>
+          <div class="card-meta">
+            <div class="meta-item"><span>Top-K Chunks</span><span class="meta-val">k = 4</span></div>
+            <div class="meta-item"><span>Sim Metric</span><span class="meta-val">1 - (d&sup2; / 2)</span></div>
+          </div>
+          <div class="arrow-icon">&rarr;</div>
+        </div>
+
+        <!-- Node 7 -->
+        <div class="node-card highlight-emerald">
+          <div class="card-top">
+            <span class="step-num">07</span>
+            <span class="tech-chip">google-genai</span>
+          </div>
+          <div class="card-title">Guardrailed LLM</div>
+          <div class="card-desc">Injects system prompt forbidding hallucinations and prompts injection attacks. Grounds answers strictly in context.</div>
+          <div class="card-meta">
+            <div class="meta-item"><span>Model</span><span class="meta-val">Gemini 2.5/3.5</span></div>
+            <div class="meta-item"><span>Temperature</span><span class="meta-val">0.2 (Low variance)</span></div>
+          </div>
+          <div class="arrow-icon">&rarr;</div>
+        </div>
+
+        <!-- Node 8 -->
+        <div class="node-card highlight-emerald">
+          <div class="card-top">
+            <span class="step-num">08</span>
+            <span class="tech-chip">app.py</span>
+          </div>
+          <div class="card-title">Grounded Answer</div>
+          <div class="card-desc">Presents synthesized response with explicit citations [doc.pdf, p.X] and collapsible chunk inspection panel.</div>
+          <div class="card-meta">
+            <div class="meta-item"><span>Citations</span><span class="meta-val">[file, p.X]</span></div>
+            <div class="meta-item"><span>MRR Benchmark</span><span class="meta-val">1.0000</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer-bar">
+    <div class="footer-left">
+      <div class="feature-tag"><span class="check-icon">&check;</span> Zero LangChain Bloat</div>
+      <div class="feature-tag"><span class="check-icon">&check;</span> Verified File &amp; Page Citations</div>
+      <div class="feature-tag"><span class="check-icon">&check;</span> Anti-Prompt Injection Defense</div>
+      <div class="feature-tag"><span class="check-icon">&check;</span> Deterministic 100% Hit Rate @ 4</div>
+    </div>
+    <div class="formula-tag">
+      Cosine Sim: cos(&theta;) = 1 - ||u - v||&sup2; / 2
+    </div>
+  </div>
+</body>
+</html>

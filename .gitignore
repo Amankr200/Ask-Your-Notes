@@ -1,0 +1,16 @@
+# Environment & secrets
+.env
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# FAISS index and chunk metadata (generated, not source)
+index/
+
+# Interview prep notes (private study material)
+interview_prep/
+
+# OS junk
+.DS_Store
+Thumbs.db
