@@ -74,7 +74,7 @@ The system operates across two decoupled, high-performance pipelines:
 
 ### 2. Semantic Retrieval & Generation Pipeline (`retrieve.py` & `llm.py`)
 ```text
-[ User Query ] ──► [ Query Embedding ] ──► [ FAISS ANN Search ] ──► [ Top-4 Chunks ] ──► [ Guardrailed Gemini ] ──► [ Grounded Response + Citations ]
+[ User Query ] ──► [ Query Embedding ] ──► [ FAISS Search ] ──► [ Top-4 Chunks ] ──► [ Guardrailed Gemini ] ──► [ Grounded Response + Citations ]
 ```
 - **Query Embedding**: The user's question is encoded with the identical bi-encoder and unit-normalized.
 - **Exact Vector Search**: FAISS calculates $L_2$ Euclidean distances against unit vectors, which is mathematically equivalent to Cosine Similarity:
@@ -103,7 +103,7 @@ The system operates across two decoupled, high-performance pipelines:
                (Vector Store)                           (Metadata)
                       ▲                                     ▲
                       │                                     │
-                 retrieve.py (embed query, FAISS ANN search, cosine sim)
+                 retrieve.py (embed query, FAISS search, cosine sim)
                                          ▲
                                          │ Top-4 Chunks
                                          │
@@ -187,7 +187,7 @@ streamlit run app.py
 1. Open your browser at `http://localhost:8501`.
 2. Upload lecture slides or research PDFs in the sidebar and click **"Save & Ingest Documents"**.
 3. Type your question in the main chat input.
-4. Review the grounded answer with embedded citations, then expand the **"🔍 Inspect Retrieved Excerpts"** accordion to verify the exact source passages and similarity scores.
+4. Review the grounded answer with embedded citations, then expand the **"Inspect Retrieved Excerpts"** accordion to verify the exact source passages and similarity scores.
 
 ---
 
